@@ -6,6 +6,8 @@ output: slidy_presentation
 ---
 
 ```{r setup, include=FALSE}
+install.packages("knitr")
+library(knitr)
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, eval=FALSE, warning = FALSE)
 ```
 
@@ -121,7 +123,8 @@ https://developers.facebook.com/docs/graph-api
 
 安裝套件  
 ```{r 安裝套件, message=FALSE, warning=FALSE, echo=TRUE}
-install.packages("devtools","httr")
+install.packages(c("devtools","httr"))
+library(devtools)
 install_github("Rfacebook", "pablobarbera", subdir="Rfacebook")
 ```
 
@@ -132,7 +135,7 @@ library(Rfacebook)
 library(httr)
 ```
 
-## Rfacebook: 取得認證
+## Rfacebook: 取得認證 
 ```{r ,eval=FALSE, echo=FALSE}
 load("R_app")
 ```
@@ -169,7 +172,7 @@ fb_oauth$params$scope
 
 ## Rfacebook: what to GET?
 
-![](Rfacebook GET.tiff)
+![](Rfacebook GET.png)
 
 ## R: 臉書資料搜集
 getGroup()
