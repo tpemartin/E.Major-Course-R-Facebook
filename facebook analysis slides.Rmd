@@ -1,0 +1,269 @@
+---
+title: "R在臉書資料採礦的應用"
+author: "林茂廷老師"
+date: "June 23, 2017"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, eval=FALSE, warning = FALSE)
+```
+
+## 課程大網
+- 什麼是Facebook Graph API  
+- 如何使用Graph API  
+- 如何在R裡呼叫Graph API
+
+## Facebook Graph API
+- 入口：  
+https://developers.facebook.com/docs/graph-api
+
+## Facebook Graph API: 基本元素
+-  nodes （節點）- [名詞] 物件 (things): 使用者，照片，粉專，Comment
+-  edges （連結）- {動詞} 對一{群}物件的連結：使用者 **{的}** {照片們}， 照片 **{的}** {Comments}， 某篇文章**{的}**{Likes}。
+-  fields（欄位） - [資訊] 關於物件的訊息： 使用者的「生日」, 粉專的「名字」
+
+## Facebook Graph API: 基本元素  
+![image](http://byobi.com/blog/wp-content/uploads/2012/12/SocialGraph1.png)
+
+## Facebook Graph API 所提供的服務
+-  Graph API網址： graph.facebook.com  
+-  透過它可對{Node}或{Node的Edge}進行  
+    -  GET、POST、DELETE的動作。  
+
+*  對{Node}，如：取得{某使用者}的生日    
+*  對{Node的Edge}，如：取得｛某篇文章｝{被Likes}的次數   
+
+## Facebook Graph API: GET
+
+-  {Node}一律用{Node id}代表，除了自己可用me。  
+-  {Edge}一律用名詞{Edge name}代表  
+
+如：
+
+`GET graph.facebook.com/{node-id}`  
+`GET graph.facebook.com/{node-id}/{edge-name}`
+
+## Graph API Explorer：探索臉書神器
+入口：https://developers.facebook.com/tools/explorer  
+
+-  用來測試你可以拿到什麼資料
+
+<img src="http://wpnimages.s3.amazonaws.com/wp-content/uploads/graph-api2.png" width="700">
+
+## Graph API Explorer：探索臉書神器
+
+選擇應用程式（Applications）  
+
+-  Graph API Explorer: 測試用App  
+
+-  其他自定App: 自行開發部份
+
+設定權杖（Token）權限： 
+
+-  Get token:  用來設定臉書使用者(user)或粉專(page)管理者權限  
+-  token expiration time: 若使用Graph API Explorer，2小時會過期。
+
+## Graph API Explorer：探索臉書神器
+
+-  我
+
+-  我的photos  
+
+-  我的friends
+
+-  我的likes（指我喜愛的收藏）
+
+-  我的posts
+
+## Graph API Explorer：探索臉書神器
+回傳資訊如果有id，表示該資訊本身可以是個node，故可以做edge延伸查詢
+
+-  查詢{我的posts}下會出現那些node可做edge延伸  
+
+-  靠北北大的粉專id為300246033476997，查詢它有多少posts
+
+-  從靠北北大的一則post，查詢likes的資訊
+
+使用者id有時可以點該使用者的timeline來取得  
+  -  ...&lst=`{你的id}`%3A`{對方的id}`%3A
+
+## Graph API Explorer：探索臉書神器
+有些node只有名稱，但沒有id，可用：  
+／?id={url}
+
+-  靠北北大url=https://www.facebook.com/NTPUhate/
+
+## Graph API Explorer：探索臉書神器
+查詢node或edge特定欄位  
+使用`?fields={field name 1},{field name 2}`延伸  
+
+-  我的資料欄位id,name,picture  
+   /me?fields=id,name,picture
+   
+## Graph API: 可以查什麼
+使用手冊：https://developers.facebook.com/docs/graph-api/reference  
+
+
+## 開發FB應用程式
+幾個基本概念  
+
+1. App: 我們打算開發的應用程式，包含今天的練習都是一個App.    
+
+2. 註冊App: 每個App都必需連到<https://developers.facebook.com/apps>註冊並取得對應的**App ID** (App的身份證字號)及**App Secret**(App開發者證明)  
+
+3. 定義App要運作的Platform:  
+   在註冊App左側Settings -> Basic -> Add Platform -> Website, 輸入：  
+   http://localhost:1410/  
+   點Save Changes.
+  
+## R套件安裝：httr及Rfacebook
+
+安裝套件  
+```{r 安裝套件, message=FALSE, warning=FALSE, echo=TRUE}
+install.packages("devtools","httr")
+install_github("Rfacebook", "pablobarbera", subdir="Rfacebook")
+```
+
+啟用套件  
+```{r 啟用套件, eval=TRUE}
+library(devtools)
+library(Rfacebook)
+library(httr)
+```
+
+## Rfacebook: 取得認證
+```{r ,eval=FALSE, echo=FALSE}
+load("R_app")
+```
+
+第一次使用`Rfacebook::fbOAuth()`時會對App使用者進行Facebook login進行認證:  
+
+-  讓臉書知道是那個App要呼叫Graph API  
+    -  設定app_id及app_secret  
+    
+-  Facebook login要釋放「使用者」及「使用者所管理粉專」的權限權杖（token）給此App  
+
+```{r ,eval=FALSE, echo=TRUE}
+fb_oauth <- fbOAuth(app_id=R_app$app_id,
+                    app_secret=R_app$app_secret,
+                    extended_permissions = TRUE)
+```
+
+-  save,load權杖 
+
+```{r ,eval=FALSE, echo=TRUE}
+save(fb_oauth, file="fb_oauth")
+```
+```{r, eval=TRUE, echo=TRUE}
+load("fb_oauth")
+```
+
+## Rfacebook: 取得認證
+
+fbOAuth()可以自由設定所需權限範圍
+
+```{r}
+fb_oauth$params$scope
+```
+
+## Rfacebook: what to GET?
+
+![](Rfacebook GET.tiff)
+
+## R: 臉書資料搜集
+getGroup()
+
+連到`NTPU國立臺北大學新鮮人`，從網址取得**group_id**  
+使用getGroup取得粉專的近期5則發文  
+```{r, message=FALSE, warning=FALSE}
+group <- getGroup(group_id="763834203706721", token=fb_oauth, n=5)
+```
+
+## R: 臉書資料搜集
+getPost()
+
+```{r}
+group$id[4]->post_id
+Post.info <- getPost(post=post_id, n=5, token=fb_oauth)
+names(Post.info)
+```
+
+## R: 臉書資料搜集
+getShares()
+
+```{r}
+Share.info <- getShares(post=post_id, n=5, token=fb_oauth)
+```
+
+## R: 臉書資料搜集
+getCommentReplies()
+
+```{r}
+comment_id<-Post.info$comments[1,"id"]
+a<-getCommentReplies(comment_id,token=fb_oauth)
+print(a)
+```
+
+## 粉專經營
+
+要取得Page id可以使用以下兩種方式：  
+
+1.  GET /?id={粉專url}  
+
+2.  使用以下連結，  
+https://www.facebook.com/pg/{粉專名稱}/about/?entry_point=page_edit_dialog&tab=page_info  
+
+3.  粉專頁左側點選`About`  
+
+
+
+## Rfacebook::getPage
+
+例：2017-經濟週-過去過去  
+```{r}
+page.id<-"229828857499854" 
+Page.info <- getPage(page=page.id,token=fb_oauth)
+```
+
+-  那一則的likes_count最高？為什麼？  
+
+## Rfacebook::getInsights 
+
+-  需要較高權限，如manage_pages  
+-  可利用fbOAuth重新取得高權限的token  
+
+例：E.Major粉專801188293364478發文的Insights  
+```{r}
+token = fbOAuth(R_app$app_id, R_app$app_secret, scope=c("user_birthday", "user_religion_politics", "user_relationships", "user_relationship_details", "user_hometown", "user_location", "user_likes", "user_education_history", "user_work_history", "user_website", "user_events", "user_photos", "user_videos", "user_friends", "user_about_me", "user_status", "user_games_activity", "user_tagged_places", "user_posts", "rsvp_event", "email", "read_insights", "publish_actions", "read_audience_network_insights", "read_custom_friendlists", "user_actions.books", "user_actions.music", "user_actions.video", "user_actions.fitness", "user_actions.news", "user_managed_groups", "manage_pages", "pages_manage_cta", "pages_manage_instant_articles", "pages_show_list", "publish_pages", "read_page_mailboxes", "public_profile", "basic_info")) #重新取得token
+page.token<-getPageToken("781564565326851",token) #取得page.token
+getInsights(object_id = "801188293364478", token=page.token,
+            metric = c("post_consumptions","post_consumptions_unique"))
+```
+
+
+## R: httr::GET  
+
+使用httr::GET可以得到更多Graph API訊息  
+
+例：想找出這篇po文的comments中所tag的人
+```{r}
+post_id <- "763834203706721_1358373074252828"
+Post.info <- getPost(post=post_id, n=10, token=fb_oauth)
+```
+
+## R: httr::GET
+
+查看Graph API說明書：關於comments  
+https://developers.facebook.com/docs/graph-api/reference/v2.9/comment    
+查看該comment訊息有tag那些人
+
+## R: httr::GET 
+```{r}
+library(httr)
+req <- GET("https://graph.facebook.com/v2.9/1358382860918516?fields=message_tags", config(token = fb_oauth))
+stop_for_status(req) #檢查是否有request errors
+req.content<-(content(req))
+req.content
+length(req.content)
+```
