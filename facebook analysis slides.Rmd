@@ -6,7 +6,7 @@ output: slidy_presentation
 ---
 
 ```{r setup, include=FALSE}
-install.packages("knitr")
+# 請確認有knitr套件
 library(knitr)
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, eval=FALSE, warning = FALSE)
 ```
@@ -172,7 +172,7 @@ fb_oauth$params$scope
 
 ## Rfacebook: what to GET?
 
-![](Rfacebook GET.png)
+![](https://raw.githubusercontent.com/tpemartin/E.Major-Course-R-Facebook/master/Rfacebook%20GET.png)
 
 ## R: 臉書資料搜集
 getGroup()
