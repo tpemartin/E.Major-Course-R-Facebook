@@ -163,7 +163,7 @@ load("fb_oauth")
 
 fbOAuth()可以自由設定所需權限範圍
 
-```{r}
+```{r 取得認證}
 fb_oauth$params$scope
 ```
 
@@ -176,14 +176,14 @@ getGroup()
 
 連到`NTPU國立臺北大學新鮮人`，從網址取得**group_id**  
 使用getGroup取得粉專的近期5則發文  
-```{r, message=FALSE, warning=FALSE}
+```{r getGroup, message=FALSE, warning=FALSE}
 group <- getGroup(group_id="763834203706721", token=fb_oauth, n=5)
 ```
 
 ## R: 臉書資料搜集
 getPost()
 
-```{r}
+```{r getPost}
 group$id[4]->post_id
 Post.info <- getPost(post=post_id, n=5, token=fb_oauth)
 names(Post.info)
@@ -192,14 +192,14 @@ names(Post.info)
 ## R: 臉書資料搜集
 getShares()
 
-```{r}
+```{r getShares}
 Share.info <- getShares(post=post_id, n=5, token=fb_oauth)
 ```
 
 ## R: 臉書資料搜集
 getCommentReplies()
 
-```{r}
+```{r getCommentReplies}
 comment_id<-Post.info$comments[1,"id"]
 a<-getCommentReplies(comment_id,token=fb_oauth)
 print(a)
@@ -221,7 +221,7 @@ https://www.facebook.com/pg/{粉專名稱}/about/?entry_point=page_edit_dialog&t
 ## Rfacebook::getPage
 
 例：2017-經濟週-過去過去  
-```{r}
+```{r getPage}
 page.id<-"229828857499854" 
 Page.info <- getPage(page=page.id,token=fb_oauth)
 ```
@@ -234,7 +234,7 @@ Page.info <- getPage(page=page.id,token=fb_oauth)
 -  可利用fbOAuth重新取得高權限的token  
 
 例：E.Major粉專801188293364478發文的Insights  
-```{r}
+```{r getInsights}
 token = fbOAuth(R_app$app_id, R_app$app_secret, scope=c("user_birthday", "user_religion_politics", "user_relationships", "user_relationship_details", "user_hometown", "user_location", "user_likes", "user_education_history", "user_work_history", "user_website", "user_events", "user_photos", "user_videos", "user_friends", "user_about_me", "user_status", "user_games_activity", "user_tagged_places", "user_posts", "rsvp_event", "email", "read_insights", "publish_actions", "read_audience_network_insights", "read_custom_friendlists", "user_actions.books", "user_actions.music", "user_actions.video", "user_actions.fitness", "user_actions.news", "user_managed_groups", "manage_pages", "pages_manage_cta", "pages_manage_instant_articles", "pages_show_list", "publish_pages", "read_page_mailboxes", "public_profile", "basic_info")) #重新取得token
 page.token<-getPageToken("781564565326851",token) #取得page.token
 getInsights(object_id = "801188293364478", token=page.token,
@@ -247,7 +247,7 @@ getInsights(object_id = "801188293364478", token=page.token,
 使用httr::GET可以得到更多Graph API訊息  
 
 例：想找出這篇po文的comments中所tag的人
-```{r}
+```{r comments中所tag的人}
 post_id <- "763834203706721_1358373074252828"
 Post.info <- getPost(post=post_id, n=10, token=fb_oauth)
 ```
@@ -259,7 +259,7 @@ https://developers.facebook.com/docs/graph-api/reference/v2.9/comment
 查看該comment訊息有tag那些人
 
 ## R: httr::GET 
-```{r}
+```{r httr::GET}
 library(httr)
 req <- GET("https://graph.facebook.com/v2.9/1358382860918516?fields=message_tags", config(token = fb_oauth))
 stop_for_status(req) #檢查是否有request errors
