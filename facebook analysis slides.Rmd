@@ -117,7 +117,9 @@ https://developers.facebook.com/docs/graph-api
 3. 定義App要運作的Platform:  
    在註冊App左側Settings -> Basic -> Add Platform -> Website, 輸入：  
    http://localhost:1410/  
-   點Save Changes.
+   點Save Changes.  
+   
+4. App Domains請填localhost
   
 ## R套件安裝：httr及Rfacebook
 
