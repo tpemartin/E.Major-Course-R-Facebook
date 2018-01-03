@@ -2,7 +2,9 @@
 title: "R在臉書資料採礦的應用"
 author: "林茂廷老師"
 date: "June 23, 2017"
-output: slidy_presentation
+output:
+  ioslides_presentation: default
+  slidy_presentation: default
 ---
 
 ```{r setup, include=FALSE}
@@ -114,14 +116,34 @@ https://developers.facebook.com/docs/graph-api
 
 2. 註冊App: 每個App都必需連到<https://developers.facebook.com/apps>註冊並取得對應的**App ID** (App的身份證字號)及**App Secret**(App開發者證明)  
 
-3. 定義App要運作的Platform:  
-   在註冊App左側Settings -> Basic -> Add Platform -> Website, 輸入：  
-   http://localhost:1410/  
-   點Save Changes.  
-   
-4. App Domains請填localhost
+    2.1 Add a new app
+    
+    ![](./fig/Addnewapp.png)
+    
+    2.2 Fill in app info
+    
+    ![](./fig/newappinfo.png)
+    
+    2.3 Select a product: Facebook login
+    
+    ![](./fig/fblogin.png)
+    
+    2.4 Select platform: Web
+    
+    ![](./fig/selectplatform.png)
+    
+    2.5 Setup site URL: http://localhost:1410/ 
+    
+    ![](./fig/siteurl.png)
+    
+3. 取得App ID及App Secret
+
+![](./fig/appsettings.png)
+
+
+## 4.啟動R套件進行應用程式認證 {-}
   
-## R套件安裝：httr及Rfacebook
+### R套件安裝：httr及Rfacebook
 
 安裝套件  
 ```{r 安裝套件, message=FALSE, warning=FALSE, echo=TRUE}
@@ -137,9 +159,14 @@ library(Rfacebook)
 library(httr)
 ```
 
-## Rfacebook: 取得認證 
+### Rfacebook: 取得認證 
 ```{r ,eval=FALSE, echo=FALSE}
-load("R_app")
+#load("R_app")
+#fbOAuth()
+R_app<-list(
+  app_id="376441419449841",
+  app_secret="41af732717539c4191b3a4fd135e8a86"
+)
 ```
 
 第一次使用`Rfacebook::fbOAuth()`時會對App使用者進行Facebook login進行認證:  
@@ -155,11 +182,28 @@ fb_oauth <- fbOAuth(app_id=R_app$app_id,
                     extended_permissions = TRUE)
 ```
 
--  save,load權杖 
+這時R console會出現
+```
+Copy and paste into Site URL on Facebook App Settings: http://localhost:1410/ 
+When done, press any key to continue...
+```
+
+連回developer, 如下回位置填入`http://localhost:1410/ `, save changes.
+
+![](./fig/sidebar_facebooklogin.png)
+
+![](./fig/validoauthuri.png)
+
+###  儲存認證權杖 
 
 ```{r ,eval=FALSE, echo=TRUE}
 save(fb_oauth, file="fb_oauth")
 ```
+
+## 以後的使用
+
+一旦儲存權杖後，以後library套件後，只需直接執行以下行就可，無需再經歷以上步驟。
+
 ```{r, eval=TRUE, echo=TRUE}
 load("fb_oauth")
 ```
@@ -170,6 +214,10 @@ fbOAuth()可以自由設定所需權限範圍
 
 ```{r 取得認證}
 fb_oauth$params$scope
+```
+
+```{r 自由設定權限範圍}
+token = fbOAuth(R_app$app_id, R_app$app_secret, scope=c("user_birthday", "user_religion_politics", "user_relationships", "user_relationship_details", "user_hometown", "user_location", "user_likes", "user_education_history", "user_work_history", "user_website", "user_events", "user_photos", "user_videos", "user_friends", "user_about_me", "user_status", "user_games_activity", "user_tagged_places", "user_posts", "rsvp_event", "email", "read_insights", "publish_actions", "read_audience_network_insights", "read_custom_friendlists", "user_actions.books", "user_actions.music", "user_actions.video", "user_actions.fitness", "user_actions.news", "user_managed_groups", "manage_pages", "pages_manage_cta", "pages_manage_instant_articles", "pages_show_list", "publish_pages", "read_page_mailboxes", "public_profile", "basic_info")) #重新取得token
 ```
 
 ## Rfacebook: what to GET?
@@ -220,8 +268,6 @@ print(a)
 https://www.facebook.com/pg/{粉專名稱}/about/?entry_point=page_edit_dialog&tab=page_info  
 
 3.  粉專頁左側點選`About`  
-
-
 
 ## Rfacebook::getPage
 
